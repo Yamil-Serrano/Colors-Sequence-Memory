@@ -1,4 +1,4 @@
-# Colors Sequence-Memory
+# Colors Sequence Memory
 
 A simple memory game built on the ESP8266, using 74HC595 and 74HC165 shift registers to control LEDs and read buttons with minimal GPIO usage.
 The game shows a random color sequence on LEDs that the player must repeat using buttons.
