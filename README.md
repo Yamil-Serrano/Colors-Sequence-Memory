@@ -1,4 +1,4 @@
-# Sequence-Memory
+# Colors Sequence-Memory
 
 A simple memory game built on the ESP8266, using 74HC595 and 74HC165 shift registers to control LEDs and read buttons with minimal GPIO usage.
 The game shows a random color sequence on LEDs that the player must repeat using buttons.
@@ -58,7 +58,7 @@ Now, in **Sequence-Memory**, we use both together to build an actual interactive
 1. Clone this repository:
 
 ```bash
-git clone https://github.com/Yamil-Serrano/Sequence-Memory.git
+git clone https://github.com/Yamil-Serrano/Colors-Sequence-Memory.git
 ```
 
 2. Open `src/main.cpp` in Arduino IDE or PlatformIO.
