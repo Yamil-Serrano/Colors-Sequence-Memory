@@ -17,23 +17,14 @@ const int buzzerPin = D6;  // GPIO12 - buzzer
 // Notes array
 const int notes[4] = { 262, 294, 330, 349 }; // Do, Re, Mi, Fa
 
+byte sequence[10];
+int currentSequenceSize = 0;
+
+byte playerpattern[10];
+int playerpatternindex = 0;
+
 // last byte
 byte lastData = 0;
-
-void setup() {
-  // Pins connected to the 74HC595 shift register
-  Serial.begin(115200);
-  pinMode(dataPin, OUTPUT);
-  pinMode(latchPin, OUTPUT);
-
-  // Shared clock pin
-  pinMode(clockPin, OUTPUT);
-
-  // Pins connected to the 74HC165 shift register
-  pinMode(shiftLoadPin, OUTPUT);
-  pinMode(QHPin, INPUT);
-  pinMode(buzzerPin, OUTPUT);
-}
 
 void checkButtonsAndPlayNote(byte data) {
   for (int i = 0; i < 4; i++) {
@@ -70,8 +61,39 @@ byte Input_74HC165() {
     return data;
 }
 
-void loop() {
-byte currentData = Input_74HC165();
+byte RandomColorGenerator() {
+  // NOTE: When you write 00001000 in the code, the compiler interprets it as an octal (base 8) number 
+  // due to the leading 0. So: 00001000 in octal is equivalent to 512 in decimal.
+  // Since the value 512 is larger than the range of a byte (which goes from 0 to 255), 
+  // it overflows and gets truncated. In contrast, when you use the hexadecimal notation like 0x08, you are explicitly specifying 
+  // a base 16 number, which fits within a byte. The value 0x08 is simply 8 in decimal, which is well within the byte's range.
+
+  int randomNumber = random(0, 4);
+
+  switch (randomNumber) {
+    case 0:
+      return 0x01; // Red
+    case 1:
+      return 0x02; // Yellow
+    case 2:
+      return 0x04; // Green
+    case 3:
+      return 0x08; // Blue
+    default:
+      return 0x00; 
+  }
+}
+
+void ShowPattern() {
+  for (int i = 0; i < currentSequenceSize; i++) {
+    Output_74HC595(sequence[i]);
+    checkButtonsAndPlayNote(sequence[i]);
+    delay(50);
+  }
+}
+
+byte ReadButtons() {
+  byte currentData = Input_74HC165();
 
   if (currentData != lastData) {
     Output_74HC595(currentData);
@@ -79,5 +101,55 @@ byte currentData = Input_74HC165();
     lastData = currentData;
   }
 
-  delay(10);
+  return currentData;
+}
+
+void PlayerTurn() {
+  // Clear the playerpattern array at the beginning of a new turn
+  for (int i = 0; i < 10; i++) {
+    playerpattern[i] = 0; 
+  }
+  
+  // Reset the index so that it starts filling the array from the beginning
+  playerpatternindex = 0;
+
+  // Read the player's inputs and store them
+  while (playerpatternindex < currentSequenceSize) {
+    byte playerInput = ReadButtons();
+
+    if (playerInput != 0x00) {
+      playerpattern[playerpatternindex] = playerInput;  // Store the input in the pattern
+      playerpatternindex++;  // Increment the index for the next input
+    }
+
+    delay(50);  // Delay to avoid overloading the readings
+  }
+}
+
+void setup() {
+  // Pins connected to the 74HC595 shift register
+  Serial.begin(115200);
+  pinMode(dataPin, OUTPUT);
+  pinMode(latchPin, OUTPUT);
+
+  // Shared clock pin
+  pinMode(clockPin, OUTPUT);
+
+  // Pins connected to the 74HC165 shift register
+  pinMode(shiftLoadPin, OUTPUT);
+  pinMode(QHPin, INPUT);
+  pinMode(buzzerPin, OUTPUT);
+
+  // Random generator
+  randomSeed(analogRead(0));
+
+  for(int i = 0; i < 4; i++) {
+    sequence[i] = RandomColorGenerator();
+    currentSequenceSize ++;
+  }
+}
+
+
+void loop() {
+  //PlayerTurn();
 }
