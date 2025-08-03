@@ -88,7 +88,7 @@ void ShowPattern() {
   for (int i = 0; i < currentSequenceSize; i++) {
     Output_74HC595(sequence[i]);
     checkButtonsAndPlayNote(sequence[i]);
-    delay(50);
+    delay(100);
   }
 }
 
@@ -104,27 +104,78 @@ byte ReadButtons() {
   return currentData;
 }
 
+bool isValidSingleInput(byte value) {
+  // Only accept inputs where exactly one bit is set: 0x01, 0x02, 0x04, 0x08
+  return value == 0x01 || value == 0x02 || value == 0x04 || value == 0x08;
+}
+
 void PlayerTurn() {
-  // Clear the playerpattern array at the beginning of a new turn
+  // Clear the playerpattern array
   for (int i = 0; i < 10; i++) {
-    playerpattern[i] = 0; 
+    playerpattern[i] = 0;
   }
-  
-  // Reset the index so that it starts filling the array from the beginning
+
+  delay(1000); // Short pause before accepting input
   playerpatternindex = 0;
 
-  // Read the player's inputs and store them
+  // Read inputs until the full sequence is entered
   while (playerpatternindex < currentSequenceSize) {
     byte playerInput = ReadButtons();
 
-    if (playerInput != 0x00) {
-      playerpattern[playerpatternindex] = playerInput;  // Store the input in the pattern
-      playerpatternindex++;  // Increment the index for the next input
+    if (playerInput != 0x00 && isValidSingleInput(playerInput)) {
+      delay(10); // Debounce delay
+      playerpattern[playerpatternindex] = playerInput;
+      playerpatternindex++;
+
+      // Wait for button release to avoid double registration
+      while (ReadButtons() != 0x00) {
+        delay(10);
+      }
     }
 
-    delay(50);  // Delay to avoid overloading the readings
+    delay(50); // Minor delay between checks
   }
 }
+
+
+bool compareArrays(const byte* a, const byte* b, int len) {
+  for (int i = 0; i < len; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
+}
+
+void ResetPattern() {
+  currentSequenceSize = 0;
+    for (int i = 0; i < 4; i++) {
+      sequence[i] = RandomColorGenerator();
+      currentSequenceSize++;
+    }
+}
+
+void Win() {
+  // Correct sequence
+    Output_74HC595(0x04); // Green LED 
+    delay(1000);
+
+    if (currentSequenceSize >= 10) {
+      ResetPattern();
+    }
+
+    else {
+      sequence[currentSequenceSize] = RandomColorGenerator();
+      currentSequenceSize++;
+    }
+}
+
+void Loose() {
+  // Incorrect sequence
+    Output_74HC595(0x01); // Red LED 
+    delay(1000);
+
+    ResetPattern();
+}
+
 
 void setup() {
   // Pins connected to the 74HC595 shift register
@@ -149,7 +200,16 @@ void setup() {
   }
 }
 
-
 void loop() {
-  //PlayerTurn();
+  ShowPattern();
+  PlayerTurn();
+  if (compareArrays(sequence, playerpattern, currentSequenceSize)) {
+    Win();
+  } 
+  
+  else {
+    Loose();
+  }
+
+  delay(1000); // Short pause before next round
 }
