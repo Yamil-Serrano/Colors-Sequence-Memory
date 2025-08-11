@@ -4,11 +4,6 @@ A simple memory game built on the ESP8266, using 74HC595 and 74HC165 shift regis
 The game shows a random color sequence on LEDs that the player must repeat using buttons.
 If the player matches the sequence, the game adds a new random color until reaching a maximum of 10 colors. If the player makes a mistake, the game ends.
 
----
-
-> ⚠️ Note: The full version is currently in development. For now, you can use the basic setup and explore the code to understand how the shift registers work together.
-
----
 
 ## 🧩 Part of the Shift Register I/O Expansion Series
 
@@ -65,13 +60,14 @@ git clone https://github.com/Yamil-Serrano/Colors-Sequence-Memory.git
 3. Wire the circuit following the schematic (coming soon).
 4. Upload and play!
 
----
+## Diagram
+<img width="1385" height="614" alt="image" src="https://github.com/user-attachments/assets/ab0aabbc-09a2-44b1-ac72-ef9f1e24be5d" />
+
 
 ## License
 
 This project is licensed under the MIT License – see the [LICENSE](LICENSE.md) file for details.
 
----
 
 ## Contact
 
